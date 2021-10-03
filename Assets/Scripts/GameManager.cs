@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     [Range(0f, 1f)]
 
     public float AutoCollectPercentage = 0.1f;
+    public float SaveDelay = 5f;
     public ResourceConfig[] ResourcesConfigs;
     public Sprite[] ResourcesSprites;
     public Transform ResourcesParent;
@@ -32,6 +33,7 @@ public class GameManager : MonoBehaviour
     private List<ResourceController> _activeResources = new List<ResourceController>();
     private List<TapText> _tapTextPool = new List<TapText>();
     private float _collectSecond;
+    private float _saveDelayCounter;
 
     // Start is called before the first frame update
     private void Start()
@@ -43,8 +45,11 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        float deltaTime = Time.unscaledDeltaTime;
+        _saveDelayCounter -= deltaTime;
+
         // Fungsi untuk selalu mengeksekusi CollectPerSecond setiap detik 
-        _collectSecond += Time.unscaledDeltaTime;
+        _collectSecond += deltaTime;
 
         if (_collectSecond >= 1f)
         {
@@ -124,7 +129,12 @@ public class GameManager : MonoBehaviour
     {
         UserDataManager.Progress.Gold += value;
         GoldInfo.text = $"Gold: {UserDataManager.Progress.Gold.ToString("0")}";
-        UserDataManager.Save();
+        UserDataManager.Save(_saveDelayCounter < 0f);
+
+        if (_saveDelayCounter < 0f)
+        {
+            _saveDelayCounter = SaveDelay;
+        }
     }
 
     public void CollectByTap(Vector3 tapPosition, Transform parent)
